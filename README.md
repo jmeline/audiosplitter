@@ -1,13 +1,16 @@
 # audiosplitter
 Splitting audio using FFmpeg from a text file
 
-Note: Requires ffmpeg to be installed
+Note: Requires (ffmpeg)[https://ffmpeg.org/download.html] to be installed
 
 ```
-./audiosplitter audiofile.m4a tracks
+$ go build
+$ ./audiosplitter audiofile.m4a tracks
 ```
 
-### Tracks file format
+### Tracks
+
+audiosplitter requires a file that lays out how you would like to split the audio.
 
 comma separated format: start,end,track name
 ```
@@ -17,3 +20,5 @@ comma separated format: start,end,track name
 12:30,17:08,track4
 17:08,22:42,track5
 ```
+
+Track names can have spaces in them. This program will put underscores inplace of spaces. Special characters such as & can cause problems.
