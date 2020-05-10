@@ -9,7 +9,6 @@ import (
 )
 
 func createOutputDirectory(audioInput string) string {
-	// create an output directory
 	outputDir := strings.Replace(audioInput, ".m4a", "", -1)
 	_, err := os.Stat(outputDir)
 	if os.IsExist(err) {
@@ -47,7 +46,7 @@ func createCommands(tracks [][]string, outputDir string, audioInput string) []st
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Not enough Arguments: ./audiosplitter audio.mp4 tracks")
+		fmt.Println("Not enough Arguments: ./audiosplitter audio.m4a tracks")
 		os.Exit(1)
 	}
 	argsWithoutProg := os.Args[1:]

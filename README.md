@@ -1,7 +1,9 @@
 # audiosplitter
 Splitting audio using FFmpeg from a text file
 
-Note: Requires [ffmpeg](https://ffmpeg.org/download.html) to be installed
+Note:
+  * Requires [ffmpeg](https://ffmpeg.org/download.html) to be installed
+  * Currently only works with m4a files.
 
 ```
 $ go build
