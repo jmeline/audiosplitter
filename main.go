@@ -18,7 +18,39 @@ func createOutputDirectory(audioInput string) string {
 	return outputDir
 }
 
-func collectTracksFromFile(tracksFile string) ([][]string, error) {
+func buildTracksWithTimestampRanges(tracks [][]string) []Track {
+	var previousTimestamp string
+	var timestamps []Track
+	for i, line := range tracks {
+		if previousTimestamp != "" {
+			var t Track
+			t.startTime = previousTimestamp
+			t.endTime = line[0]
+			timestamps = append(timestamps, t)
+		}
+
+		previousTimestamp = line[0]
+
+		// We're finished and need to capture the last timestamp
+		if i == len(tracks)-1 {
+			t := Track{
+				startTime: line[0],
+				endTime:   "24:00:00",
+			}
+
+			timestamps = append(timestamps, t)
+		}
+	}
+	return timestamps
+}
+
+type Track struct {
+	startTime string
+	endTime   string
+	trackName string
+}
+
+func collectTracksFromFile(tracksFile string) ([]Track, error) {
 	file, err := os.Open(tracksFile)
 	s := bufio.NewScanner(file)
 	defer file.Close()
@@ -28,17 +60,26 @@ func collectTracksFromFile(tracksFile string) ([][]string, error) {
 		line := strings.Split(s.Text(), ",")
 		tracks = append(tracks, line)
 	}
-	return tracks, err
+
+	tracksWithTimestamps := buildTracksWithTimestampRanges(tracks)
+	for index := range tracksWithTimestamps {
+		tracksWithTimestamps[index].trackName = tracks[index][1]
+	}
+	return tracksWithTimestamps, err
 }
-func createCommands(tracks [][]string, outputDir string, audioInput string) []string {
+
+func createCommands(tracks []Track, outputDir string, audioInput string) []string {
 	commandString := "ffmpeg -i %s -y -acodec copy -ss %s -to %s %s"
 	var commands []string
+
 	for i, track := range tracks {
-		startTime := track[0]
-		endTime := track[1]
-		trackTitle := strings.Replace(track[2], " ", "_", -1)
+		trackTitle := strings.Replace(track.trackName, " ", "_", -1)
 		filename := fmt.Sprintf("%s/%d_%s.m4a", outputDir, i, trackTitle)
-		command := fmt.Sprintf(commandString, audioInput, startTime, endTime, filename)
+		command := fmt.Sprintf(commandString,
+			audioInput,
+			track.startTime,
+			track.endTime,
+			filename)
 		commands = append(commands, command)
 	}
 	return commands
@@ -61,6 +102,7 @@ func main() {
 		fmt.Println("Encountered an error while collecting tracks from file", err)
 		os.Exit(1)
 	}
+
 	commands := createCommands(tracks, outputDir, audioInput)
 	var runningCommands []*exec.Cmd
 	for _, command := range commands {
